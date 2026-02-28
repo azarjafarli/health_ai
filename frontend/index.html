@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <!-- 
+        To configure API URL for VM or remote backend, use one of these methods:
+        1. URL parameter: ?apiUrl=http://YOUR_VM_IP:8000
+        2. Set global variable: <script>window.API_BASE_URL = 'http://YOUR_VM_IP:8000';</script>
+        3. Default: http://localhost:8000
+    -->
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 Healthcare AI Assistant</h1>
+            <p class="subtitle">AI-powered health diary summarizer and clinical note cleaner</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="diary">Health Diary</button>
+            <button class="tab-button" data-tab="clinical">Clinical Documentation</button>
+        </nav>
+
+        <div id="diary-tab" class="tab-content active">
+            <div class="diary-container">
+                <div class="diary-input-section">
+                    <h2>Log Your Health Entry</h2>
+                    <form id="diary-form">
+                        <div class="form-group">
+                            <label>Gender:</label>
+                            <div class="radio-group" style="display: flex; gap: 20px; margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="gender" value="male" id="gender-male">
+                                    <span>Male</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="gender" value="female" id="gender-female">
+                                    <span>Female</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="entry-type">Entry Type:</label>
+                            <select id="entry-type" required>
+                                <option value="chronic_condition">Chronic Condition</option>
+                                <option value="genetic_condition">Genetic Condition</option>
+                                <option value="allergy">Allergy</option>
+                                <option value="vitals">Vitals</option>
+                                <option value="lifestyle_risk">Lifestyle Risk</option>
+                                <option value="past_illness">Past Illness</option>
+                                <option value="medication">Medication</option>
+                                <option value="family_history">Family History</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="family-history-group" style="display: none;">
+                            <label for="family-history" id="family-history-label">Family History:</label>
+                            <small id="family-history-help" style="color: #86868b; font-size: 12px; display: block; margin-bottom: 8px;">Enter parental or family medical history that may affect your genetic risk</small>
+                            <textarea id="family-history" rows="4" placeholder="e.g., Mother had breast cancer, Father had diabetes"></textarea>
+                        </div>
+
+                        <div class="form-group" id="diary-text-group">
+                            <label for="diary-text" id="diary-text-label">Text Entry:</label>
+                            <small id="diary-text-help" style="color: #86868b; font-size: 12px; display: block; margin-bottom: 8px;">Enter details about your health entry</small>
+                            <textarea id="diary-text" rows="4" placeholder="Type your entry here..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Or Record Audio:</label>
+                            <div class="audio-controls">
+                                <button type="button" id="record-btn" class="btn btn-primary">
+                                    🎤 Start Recording
+                                </button>
+                                <span id="recording-status"></span>
+                            </div>
+                            <audio id="audio-playback" controls style="display: none; margin-top: 10px;"></audio>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Submit Entry</button>
+                    </form>
+                </div>
+
+                <div class="diary-entries-section">
+                    <h2>Your Entries</h2>
+                    <div class="filter-controls">
+                        <label for="entry-filter">Filter by:</label>
+                        <select id="entry-filter">
+                            <option value="all">All Entries</option>
+                            <option value="chronic_condition">Chronic Condition</option>
+                            <option value="genetic_condition">Genetic Condition</option>
+                            <option value="allergy">Allergy</option>
+                            <option value="vitals">Vitals</option>
+                            <option value="lifestyle_risk">Lifestyle Risk</option>
+                            <option value="past_illness">Past Illness</option>
+                            <option value="medication">Medication</option>
+                            <option value="family_history">Family History</option>
+                        </select>
+                    </div>
+                    <div id="entries-list"></div>
+                </div>
+
+                <div class="diary-summary-section">
+                    <h2>AI Health Insights</h2>
+                    <div id="summary-content">
+                        <div id="ai-insights"></div>
+                        <div id="life-choices"></div>
+                        <div id="awareness-alerts"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="clinical-tab" class="tab-content">
+            <div class="clinical-container">
+                <div class="clinical-input-section">
+                    <h2>Clinical Documentation</h2>
+                    <p class="info-text">Record or enter clinical dictation to generate structured medical documentation.</p>
+                    
+                    <form id="clinical-form">
+                        <div class="form-group">
+                            <label>Record Clinical Dictation:</label>
+                            <div class="audio-controls">
+                                <button type="button" id="clinical-record-btn" class="btn btn-primary">
+                                    🎤 Start Recording
+                                </button>
+                                <span id="clinical-recording-status"></span>
+                            </div>
+                            <audio id="clinical-audio-playback" controls style="display: none; margin-top: 10px;"></audio>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="clinical-text">Or Enter Text Dictation:</label>
+                            <textarea id="clinical-text" rows="6" placeholder="Enter clinical dictation text here..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Generate SOAP Note</button>
+                    </form>
+                </div>
+
+                <div class="clinical-results-section">
+                    <h2>Results</h2>
+                    <div id="live-indicator" style="display: none; margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+                        <strong>🎤 Live Clinical Copilot Active</strong> - Real-time transcription and SOAP generation in progress...
+                    </div>
+                    <div id="clinical-results">
+                        <div class="placeholder-text">Submit a voice note or text to see results</div>
+                    </div>
+                </div>
+
+                <div class="doctors-panel-section">
+                    <h2>Recommended Doctors</h2>
+                    <div id="doctors-list" style="overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
